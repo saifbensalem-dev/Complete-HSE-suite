@@ -62,7 +62,16 @@ export const organizationRouter = router({
         organizationId: z.string().uuid(),
         name: z.string().trim().min(2).max(256),
         legalName: z.string().trim().max(256).nullable(),
-        logoUrl: z.string().url().max(2048).nullable(),
+        logoUrl: z
+          .string()
+          .max(400_000)
+          .refine(
+            (value) =>
+              /^https:\/\//i.test(value) ||
+              /^data:image\/(png|jpeg|webp);base64,/i.test(value),
+            "Logo must be an HTTPS URL or an uploaded PNG, JPEG, or WebP image.",
+          )
+          .nullable(),
         primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
         locale: z.enum(["en", "ar", "fr"]),
         countryCode: z.string().regex(/^[A-Z]{2}$/).nullable(),
