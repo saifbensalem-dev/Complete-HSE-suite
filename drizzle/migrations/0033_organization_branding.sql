@@ -1,5 +1,5 @@
 ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "legal_name" varchar(256);
-ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "logo_url" varchar(2048);
+ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "logo_url" text;
 ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "primary_color" varchar(7) DEFAULT '#047857' NOT NULL;
 ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "locale" varchar(16) DEFAULT 'en' NOT NULL;
 ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "country_code" varchar(2);
