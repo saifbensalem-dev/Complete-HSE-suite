@@ -84,6 +84,7 @@ export const DASHBOARD_NAV_SECTIONS: readonly DashboardNavSection[] = [
     title: "Administration",
     ariaLabel: "Management system administration",
     items: [
+      { href: "/dashboard/company-profile", label: "Company profile" },
       { href: "/dashboard/program", label: "Program overview" },
       { href: "/dashboard/emergency", label: "Emergency prep" },
       { href: "/dashboard/moc", label: "Management of change" },

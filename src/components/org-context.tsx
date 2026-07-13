@@ -8,7 +8,17 @@ import {
   useState,
 } from "react";
 
-export type OrgRow = { id: string; name: string };
+export type OrgRow = {
+  id: string;
+  name: string;
+  legalName: string | null;
+  logoUrl: string | null;
+  primaryColor: string;
+  locale: string;
+  countryCode: string | null;
+  timezone: string;
+  contextSyncEnabled: boolean;
+};
 
 const OrgContext = createContext<{
   organizations: OrgRow[];

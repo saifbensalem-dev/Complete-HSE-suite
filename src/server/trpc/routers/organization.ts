@@ -43,12 +43,94 @@ export const organizationRouter = router({
       .select({
         id: organization.id,
         name: organization.name,
+        legalName: organization.legalName,
+        logoUrl: organization.logoUrl,
+        primaryColor: organization.primaryColor,
+        locale: organization.locale,
+        countryCode: organization.countryCode,
+        timezone: organization.timezone,
         contextSyncEnabled: organization.contextSyncEnabled,
       })
       .from(membership)
       .innerJoin(organization, eq(membership.organizationId, organization.id))
       .where(eq(membership.userId, ctx.user.id));
   }),
+
+  updateProfile: protectedMutation
+    .input(
+      z.object({
+        organizationId: z.string().uuid(),
+        name: z.string().trim().min(2).max(256),
+        legalName: z.string().trim().max(256).nullable(),
+        logoUrl: z
+          .string()
+          .max(400_000)
+          .refine(
+            (value) =>
+              /^https:\/\//i.test(value) ||
+              /^data:image\/(png|jpeg|webp);base64,/i.test(value),
+            "Logo must be an HTTPS URL or an uploaded PNG, JPEG, or WebP image.",
+          )
+          .nullable(),
+        primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+        locale: z.enum(["en", "ar", "fr"]),
+        countryCode: z.string().regex(/^[A-Z]{2}$/).nullable(),
+        timezone: z.string().trim().min(1).max(64),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertPermission(
+        ctx.db,
+        ctx.user.id,
+        input.organizationId,
+        PERMISSIONS.ORG_ADMIN,
+      );
+
+      return ctx.db.transaction(async (tx) => {
+        const [updated] = await tx
+          .update(organization)
+          .set({
+            name: input.name,
+            legalName: input.legalName,
+            logoUrl: input.logoUrl,
+            primaryColor: input.primaryColor.toUpperCase(),
+            locale: input.locale,
+            countryCode: input.countryCode,
+            timezone: input.timezone,
+            updatedAt: new Date(),
+          })
+          .where(eq(organization.id, input.organizationId))
+          .returning({
+            id: organization.id,
+            name: organization.name,
+            legalName: organization.legalName,
+            logoUrl: organization.logoUrl,
+            primaryColor: organization.primaryColor,
+            locale: organization.locale,
+            countryCode: organization.countryCode,
+            timezone: organization.timezone,
+          });
+
+        await writeAuditLog(tx, {
+          organizationId: input.organizationId,
+          actorUserId: ctx.user.id,
+          action: "organization.profile.update",
+          entityType: "organization",
+          entityId: input.organizationId,
+          payload: {
+            name: input.name,
+            legalName: input.legalName,
+            logoUrlConfigured: Boolean(input.logoUrl),
+            primaryColor: input.primaryColor.toUpperCase(),
+            locale: input.locale,
+            countryCode: input.countryCode,
+            timezone: input.timezone,
+          },
+        });
+
+        return updated;
+      });
+    }),
 
   /**
    * Chooses field launcher vs full command center for `/dashboard` — heuristic from existing RBAC keys (no new permissions).
