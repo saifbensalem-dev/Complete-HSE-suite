@@ -115,6 +115,12 @@ export const authAccountRelations = relations(authAccount, ({ one }) => ({
 export const organization = pgTable("organization", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 256 }).notNull(),
+  legalName: varchar("legal_name", { length: 256 }),
+  logoUrl: varchar("logo_url", { length: 2048 }),
+  primaryColor: varchar("primary_color", { length: 7 }).notNull().default("#047857"),
+  locale: varchar("locale", { length: 16 }).notNull().default("en"),
+  countryCode: varchar("country_code", { length: 2 }),
+  timezone: varchar("timezone", { length: 64 }).notNull().default("UTC"),
   /** Per-organization shared secret for POST /api/integration/inbound (Bearer). */
   integrationInboundSecret: varchar("integration_inbound_secret", { length: 256 }),
   /**
